@@ -92,6 +92,7 @@ public class SelectMode extends BaseMode implements Serializable {
 
     /**
      * Executes the query using the given paramters and sort options.
+     * **USED IN TESTS ONLY**
      * @param parameters Query paramters.
      * @param sortColumn column used for sorting.
      * @param order Sorting order ASC or DESC

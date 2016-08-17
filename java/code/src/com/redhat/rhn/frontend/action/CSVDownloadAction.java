@@ -207,9 +207,10 @@ public class CSVDownloadAction extends DownloadAction {
                 getUniqueName(request), request);
         if (elab != null) {
             elab.elaborate(pageData);
-            if (pageData.iterator().hasNext() &&
-                    pageData.iterator().next().getClass().equals(new SystemSearchResult()
-                .getClass())) {
+            //if (pageData.iterator().hasNext() &&
+            //        pageData.iterator().next().getClass().equals(new SystemSearchResult()
+            //    .getClass())) {
+            if (!pageData.isEmpty() && pageData.get(0) instanceof SystemSearchResult) {
                 pageData = mergeWithPartialResult(pageData,
                         (Map)session.getAttribute("ssr_" + request
                                 .getParameter(QUERY_DATA)));

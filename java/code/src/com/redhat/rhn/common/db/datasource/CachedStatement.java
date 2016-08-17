@@ -57,13 +57,19 @@ public class CachedStatement implements Serializable {
     /**
      * Comment for <code>serialVersionUID</code>
      */
-    private static final long serialVersionUID = -6256397039512492615L;
+    private static final long serialVersionUID = -6256397039512492616L;
+    
     /**
      * Logger for this class
      */
-    private static Logger log = Logger
-            .getLogger(CachedStatement.class);
-    static final int BATCH_SIZE = 500;
+    private static Logger log = Logger.getLogger(CachedStatement.class);
+    
+    /**
+     * The size above which queries are split into multiple queries, each
+     * of this size.
+     */
+    public static final int BATCH_SIZE = 500;
+    
     private final String alias;
     private final String name;
     /** the original query, before the named bind parameters were removed. */
@@ -297,7 +303,7 @@ public class CachedStatement implements Serializable {
         return (DataResult<Object>) execute(parameters, inClause, "", "", mode);
     }
 
-    Object execute(Map<String, Object> parameters, List<Object> inClause,
+    private Object execute(Map<String, Object> parameters, List<Object> inClause,
             String sortColumn,
             String order, Mode mode) {
         if (query.indexOf("%o") > 0 && !sortOptions.contains(sortColumn)) {
@@ -385,21 +391,20 @@ public class CachedStatement implements Serializable {
                     mode, resultList);
         }
 
-        StringBuilder bindParams = new StringBuilder(":l0");
-        List<String> newParams = new ArrayList<String>(params);
         if (!checkForColumn(resultList.get(0), column)) {
             throw new MapColumnNotFoundException("Column, " + column +
-                    ", not found " +
-                    "in driving query results");
+                    ", not found in driving query results");
         }
-
-        parameters.put("l0", getKey(resultList.get(0), column));
-        newParams.add("l0");
-        // start at 1, because we already added the first one
-        for (int i = 1; i < len; i++) {
-            bindParams.append(", :l" + i);
-            parameters.put("l" + i, getKey(resultList.get(i), column));
-            newParams.add("l" + i);
+        StringBuilder bindParams = new StringBuilder();
+        List<String> newParams = new ArrayList<String>(params);
+        for (int i = 0; i < len; i++) {
+        	if (i > 0) {  // don't prepend comma before first one
+        		bindParams.append(", ");
+        	}
+        	String newParam = "l" + i;
+            bindParams.append(":").append(newParam);
+            parameters.put(newParam, getKey(resultList.get(i), column));
+            newParams.add(newParam);
         }
 
         // This should all be removed and replaced with a copy constructor.
